@@ -7,7 +7,7 @@ Dotenv.load
 class HourlySeuss
 
   def initialize
-    @markov = MarkyMarkov::Dictionary.new('seuss')
+    load_dictionary!
 
     @twitter = Twitter::REST::Client.new do |config|
       config.consumer_key = ENV['TWITTER_API_KEY']
@@ -17,29 +17,25 @@ class HourlySeuss
     end
   end
 
+  def load_dictionary!
+    @markov = MarkyMarkov::Dictionary.new('seuss',1)
+  end
+
   def build
     PersistentDictionary.delete_dictionary! @markov
-    @markov = MarkyMarkov::Dictionary.new('seuss')
+    load_dictionary!
     Dir.glob('corpus/*.txt').each do |file|
       @markov.parse_file file
     end
     @markov.save_dictionary!
   end
 
-  def generate_tweet
-    tweet = ''
-    attempt = 1
+  def tweet
+    @twitter.update generate_tweet
+  end
 
-    while attempt <= 3
-      sentence = @markov.generate_n_sentences(1).strip
-      if tweet.size + 1 + sentence.size <= 140
-        tweet += " #{sentence}"
-        attempt = 1
-      else
-        attempt += 1
-      end
-    end
-    @twitter.update tweet
+  def display
+    puts generate_tweet
   end
 
   def self.auth
@@ -54,5 +50,23 @@ class HourlySeuss
 
     puts "Token: #{access_token.token}, Secret: #{access_token.secret}\n\n"
   end
+
+  protected
+
+    def generate_tweet
+      tweet = ''
+      attempt = 1
+
+      while attempt <= 3
+        sentence = @markov.generate_n_sentences(1).strip
+        if tweet.size + 1 + sentence.size <= 140
+          tweet += " #{sentence}"
+          attempt = 1
+        else
+          attempt += 1
+        end
+      end
+      return tweet.strip
+    end
 
 end
