@@ -5,7 +5,11 @@ task :build do
   HourlySeuss.new.build
 end
 
-desc "Test"
-task :test do
+desc "Tweet"
+task :tweet do
   HourlySeuss.new.generate_tweet
+end
+
+task :auth do
+  HourlySeuss.auth
 end
