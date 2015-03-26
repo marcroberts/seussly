@@ -18,7 +18,7 @@ class HourlySeuss
   end
 
   def load_dictionary!
-    @markov = MarkyMarkov::Dictionary.new('seuss',1)
+    @markov = MarkyMarkov::Dictionary.new('seuss',2)
   end
 
   def build
